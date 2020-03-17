@@ -15,7 +15,7 @@ describe('validate options', () => {
       success: [
         '[id].css',
         webpackVersion[0] === '4'
-          ? '[id].[name].css'
+          ? () => '[id].[name].css'
           : ({ chunk }) => `${chunk.id}.${chunk.name}.css`,
       ],
       failure: [true],

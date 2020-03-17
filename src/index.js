@@ -564,7 +564,10 @@ class MiniCssExtractPlugin {
         compilation.mainTemplate.hooks.hashForChunk.tap(
           pluginName,
           (hash, chunk) => {
-            const { chunkFilename } = this.options;
+            const chunkFilename = this.getChunkFilenameSetting(
+              chunk,
+              chunk.contentHash[MODULE_TYPE]
+            );
 
             if (REGEXP_CHUNKHASH.test(chunkFilename)) {
               hash.update(JSON.stringify(chunk.getChunkMaps(true).hash));
@@ -650,8 +653,9 @@ class MiniCssExtractPlugin {
             if (Object.keys(chunkMap).length > 0) {
               const chunkMaps = chunk.getChunkMaps();
               const { crossOriginLoading } = mainTemplate.outputOptions;
+              const chunkFilename = this.getChunkFilenameSetting(chunk, hash);
               const linkHrefPath = mainTemplate.getAssetPath(
-                JSON.stringify(this.options.chunkFilename),
+                JSON.stringify(chunkFilename),
                 {
                   hash: `" + ${mainTemplate.renderCurrentHashCode(hash)} + "`,
                   hashWithLength: (length) =>
@@ -1138,6 +1142,18 @@ class MiniCssExtractPlugin {
     }
 
     return obj;
+  }
+
+  getChunkFilenameSetting(chunk, hash) {
+    let { chunkFilename } = this.options;
+    if (typeof chunkFilename === 'function') {
+      chunkFilename = this.options.chunkFilename({
+        chunk,
+        hash,
+        contentHashType: MODULE_TYPE,
+      });
+    }
+    return chunkFilename;
   }
 
   sortModules(compilation, chunk, modules, requestShortener) {
